@@ -40,10 +40,10 @@ imagejpeg($image, 'uploads/'.$resultfilename.'.jpg');
 unlink($mainfilePath);
 unlink($stampResize);
 
-$resultfilePath = "uploads/".$resultfilename.'jpg';
+$resultfilePath = "uploads/".$resultfilename.'.jpg';
     
 	echo '<div class="img-box">';
-		echo '<img src="' . $resultImage . '" width="200" alt="' .  pathinfo($resultfilePath, PATHINFO_FILENAME) .'">';
+		echo '<img src="' . $resultfilePath . '" width="200" alt="' .  pathinfo($resultfilePath, PATHINFO_FILENAME) .'">';
 		echo '<p><a href="download.php?file=' . urlencode($resultfilePath) . '">Download Image</a></p>';
 	echo '</div>';
 
