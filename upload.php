@@ -1,87 +1,100 @@
 <?php
-//Is not file empty load picutres and save it
+//Is not file empty load picutres and save it in variables
 if(!empty($_FILES['mainFile'] and $_FILES['copyrightFile']['error'] == UPLOAD_ERR_OK)){
 	$resultfilename = 'resultImageTmp';
 	$mainfile = 'mainfile_tmp.jpg';
 	$stampfile = 'stampfile_tmp.jpg';
 	
-	  $file_name_main = $_FILES['mainFile']['name'];
-	  $file_tmp_main =$_FILES['mainFile']['tmp_name'];
+	$file_name_main = $_FILES['mainFile']['name'];
+	$file_tmp_main =$_FILES['mainFile']['tmp_name'];
 	  
-	  $file_name_copyright = $_FILES['copyrightFile']['name'];
-	  $file_tmp_copyright =$_FILES['copyrightFile']['tmp_name'];	  
-	  
-	  move_uploaded_file($file_tmp_main,"uploads/".$file_name_main);
-	  move_uploaded_file($file_tmp_copyright,"uploads/".$file_name_copyright);
+	$file_name_copyright = $_FILES['copyrightFile']['name'];
+	$file_tmp_copyright =$_FILES['copyrightFile']['tmp_name'];	  
 
-//new size
-$percent = 0.3;
+	//Check filenames for validation
+	if((strpos($file_name_main, '.jpg') == true or strpos($file_name_main, '.png') == true 
+	or strpos($file_name_main, '.gif') == true or strpos($file_name_main, '.webp') == true) and 
+	(strpos($file_name_copyright, '.jpg') == true or strpos($file_name_copyright, '.png') == true 
+	or strpos($file_name_copyright, '.gif') == true or strpos($file_name_copyright, '.webp') == true)){
+
+		move_uploaded_file($file_tmp_main,"uploads/".$file_name_main);
+		move_uploaded_file($file_tmp_copyright,"uploads/".$file_name_copyright);
+
+		//new size
+		$percent = 0.3;
 
 
-$mainfilePathUnconverted = "uploads/".$file_name_main;
-$stampResizedUnconverted = "uploads/".$file_name_copyright;
+		$mainfilePathUnconverted = "uploads/".$file_name_main;
+		$stampResizedUnconverted = "uploads/".$file_name_copyright;
 
-//convert pictures to jpeg 
-if (file_exists(__DIR__ . '/vendor/autoload.php')) {
-	require_once __DIR__ . '/vendor/autoload.php';
-} else {
-	require_once __DIR__ . '/php-image-converter-master/src/ImageConverter.php';
-}
-		
-if(strpos($file_name_main, '.jpg') == false) {
-	$from =  $mainfilePathUnconverted;
-	$to = 'uploads/'.$mainfile;
-	\ImageConverter\convert($from, $to, 100);
+		//convert pictures to jpeg 
+		if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+			require_once __DIR__ . '/vendor/autoload.php';
+		} else {
+			require_once __DIR__ . '/php-image-converter-master/src/ImageConverter.php';
+		}
+				
+		if(strpos($file_name_main, '.jpg') == false) {
+			$from =  $mainfilePathUnconverted;
+			$to = 'uploads/'.$mainfile;
+			\ImageConverter\convert($from, $to, 100);
 
-	$mainfilePathConverted = 'uploads/'.$mainfile;
-	unlink($mainfilePathUnconverted);
-} else {
-	$mainfilePathConverted = $mainfilePathUnconverted;
-}
+			$mainfilePathConverted = 'uploads/'.$mainfile;
+			unlink($mainfilePathUnconverted);
+		} else {
+			$mainfilePathConverted = $mainfilePathUnconverted;
+		}
 
-if(strpos($file_name_copyright, '.jpg') == false) {
-	$from = $stampResizedUnconverted;
-	$to = 'uploads/'.$stampfile;
-	\ImageConverter\convert($from, $to, 100);
+		if(strpos($file_name_copyright, '.jpg') == false) {
+			$from = $stampResizedUnconverted;
+			$to = 'uploads/'.$stampfile;
+			\ImageConverter\convert($from, $to, 100);
 
-	$stampResizedConverted ='uploads/'.$stampfile;
-	unlink($stampResizedUnconverted);
-} else {
-	$stampResizedConverted = $stampResizedUnconverted;
-}
+			$stampResizedConverted ='uploads/'.$stampfile;
+			unlink($stampResizedUnconverted);
+		} else {
+			$stampResizedConverted = $stampResizedUnconverted;
+		}
 
-//resize stamp
-$stamp = imagecreatefromjpeg($stampResizedConverted);
+		//resize stamp
+		$stamp = imagecreatefromjpeg($stampResizedConverted);
 
-list($width, $height) = getimagesize($stampResizedConverted);
-$newwidth = $width * $percent;
-$newheight = $height * $percent;
+		list($width, $height) = getimagesize($stampResizedConverted);
+		$newwidth = $width * $percent;
+		$newheight = $height * $percent;
 
-$thumb = imagecreatetruecolor($newwidth, $newheight);
+		$thumb = imagecreatetruecolor($newwidth, $newheight);
 
-imagecopyresized($thumb, $stamp, 0, 0, 0, 0, $newwidth, $newheight, $width, $height);
+		imagecopyresized($thumb, $stamp, 0, 0, 0, 0, $newwidth, $newheight, $width, $height);
 
-$x = imagesx($thumb);
-$y = imagesy($thumb);
+		$x = imagesx($thumb);
+		$y = imagesy($thumb);
 
-//Put watermark on image
-$image = imagecreatefromjpeg($mainfilePathConverted);
+		//Put watermark on image
+		$image = imagecreatefromjpeg($mainfilePathConverted);
 
-imagecopymerge($image, $thumb, imagesx($image) - $x, imagesy($image) - $y, 0, 0, imagesx($thumb), imagesy($thumb), 50);
+		imagecopymerge($image, $thumb, imagesx($image) - $x, imagesy($image) - $y, 0, 0, imagesx($thumb), imagesy($thumb), 50);
 
-imagejpeg($image, 'uploads/'.$resultfilename.'.jpg');
+		imagejpeg($image, 'uploads/'.$resultfilename.'.jpg');
 
-unlink($mainfilePathConverted);
-unlink($stampResizedConverted);
+		unlink($mainfilePathConverted);
+		unlink($stampResizedConverted);
 
-//Get new image and view it
-$resultfilePath = "uploads/".$resultfilename.'.jpg';
+		//Get new image and show it
+		$resultfilePath = "uploads/".$resultfilename.'.jpg';
 
-echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
-	echo '<div class="img-box px-5 d-flex ml-auto">';
-		echo '<img src="' . $resultfilePath . '" width="200" alt="' .  pathinfo($resultfilePath, PATHINFO_FILENAME) .'">';
-		echo '<p><a href="download.php?file=' . urlencode($resultfilePath) . '">Download Image</a></p>';
-	echo '</div>';
+		echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
+			echo '<div class="img-box px-5 d-flex ml-auto">';
+				echo '<img src="' . $resultfilePath . '" width="200" alt="' .  pathinfo($resultfilePath, PATHINFO_FILENAME) .'">';
+				echo '<p><a href="download.php?file=' . urlencode($resultfilePath) . '">Download Image</a></p>';
+			echo '</div>';
+	} else {
+		echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
+			echo '<div class="img-box px-5 d-flex ml-auto">';
+				echo '<h2>There is probably a file with the wrong format</h2>';
+				echo '<h3>To try again, go back to the main page</h3>';
+			echo '</div>';
+	}
 }
 
 ?>
